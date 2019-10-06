@@ -1,15 +1,25 @@
-## Build Server on your VPS
-### Scripts
+# Build Server on your VPS
+## Scripts
 The script of Teddysun is prefered to set up a server for the begginers. The script is [here](https://github.com/teddysun/shadowsocks_install). You could get the script with the `git` tools.
 
-### Manually configure
+## Manually configure
 #### [Ssserver](https://github.com/Tortes/shadowsocks)
-- `yum install python-setuptools && easy_install pip`
-- `yum install python34-pip git`
-- 添加pip3.4的PATH到.bashrc
-- `pip3.4 install  git+https://github.com/shadowsocks/shadowsocks.git@master`
-- 创建配置文件`mkdir /etc/shadowsocks`, `cd /etc/shadowsocks`, `vi config.json`
-- Here the `11234` is the port number and `Elpsycongroo` is the password.
+- First we will install the ssserver for your server. Input the following command to your server.
+
+```bash
+yum install python-setuptools && easy_install pip
+yum install python34-pip git wget firewalld
+pip3.4 install  git+https://github.com/shadowsocks/shadowsocks.git@master
+```
+
+- Create the config file by input
+```bash
+mkdir /etc/shadowsocks
+vi /etc/shadowsocksconfig.json
+```
+
+- Input the following JSON to your vim. Here the `11234` is the port number and `Elpsycongroo` is the password. Your could change the port-password, method as you want. Input `:wq` to save the file.
+
 ```
 {
     "server":"0.0.0.0",
@@ -23,15 +33,20 @@ The script of Teddysun is prefered to set up a server for the begginers. The scr
     "fast_open":true
 }
 ``` 
-#### 开启防火墙端口
-- You should open the tcp and udp of the port in `/etc/shadowsocks/config.json`
+
+#### Open the firewall
+- You have to open the port setted in the `/etc/shadowsocksconfig.json`. We will open the port with the help of firewall-cmd.
+- You should open the tcp and udp of the port in `/etc/shadowsocks/config.json`. Input the following lines in your server
+
 ```
 firewall-cmd --permanent --zone=public --add-port=11234/tcp
 firewall-cmd --permanent --zone=public --add-port=11234/udp
 firewall-cmd --reload   #reload
 firewall-cmd --list-all #check
 ```
-#### 优化吞吐量
+
+#### 优化吞吐量 (optinal)
+Add the following lines to `/etc/sysctl.d/local.conf`  
 `vi /etc/sysctl.d/local.conf`
 ```
 # max open files
@@ -80,14 +95,17 @@ net.ipv4.tcp_congestion_control = bbr
 - `systemctl daemon-reload`
 - `systemctl restart shadowsocks-server`
 
-#### 开机启动
-- `vi /etc/init.d/shadowsocks`配置init.d启动脚本
+#### Boot
+- We will set the boot service to protect your service from cracking.
+- `vi /etc/init.d/shadowsocks`. Input the following lines.
+
 ```
 #!/usr/bin/env bash
 #chkconfig: 2345 90 10
 #description:auto_run
 nohup ssserver -c /etc/shadowsocks/config.json > /dev/null 2>&1 &
 ```
+
 - `chkconfig --add shadowsocks`
 
 #### [Libsodium](https://www.jb51.net/os/RedHat/541431.html): Support for chacha20
